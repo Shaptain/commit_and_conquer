@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as d3 from 'd3';
 import Hero from './components/Hero';
 import Features from './components/features';
+import logo from './logo.svg';
+
 
 const App = () => {
   const [topic, setTopic] = useState('');

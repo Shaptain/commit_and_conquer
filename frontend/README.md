@@ -1,70 +1,41 @@
-# Getting Started with Create React App
+# 🪄📚 AI Research Co-Pilot  
+*Your friendly professor in glasses & tie who makes research ✨simple, smart, and fun!*
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+---
 
-## Available Scripts
+## 🎨 The Vibe  
+Imagine a **slick blackboard background** 🎓 with glowing **hot pink & cyan blue highlights**,  
+fonts that scream **modern SaaS**, and a **professor chatbot** 👔🤓 hanging out in the corner to answer your toughest questions.  
 
-In the project directory, you can run:
+This isn’t just another AI app — it’s your **research sidekick** that:  
+- Fetches **real academic papers** (no fake data 🚫).  
+- Summarizes them into **precise reports** 📝.  
+- Builds a **mind map** that actually makes sense 🕸️.  
+- Lets you chat with a **professor-avatar bot** 🤖👓.  
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 💡 Why We Built This
+Because **research shouldn’t feel like drowning in PDFs** 📂😩.  
+Students, founders, and curious humans deserve a **chill, interactive, and scalable tool** to cut through the noise.  
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+## ✨ Features
+🔍 **Topic Search** → Type your research topic and let the magic happen.  
+📑 **Formal Report** → Structured, underlined, and academic-style.  
+🌐 **Mind Map** → Clean, visual breakdown of concepts.  
+🤓 **Professor Bot** → Our little mascot with glasses & tie, ready to answer Qs.  
+⚡ **Scalable SaaS DNA** → From hackathon demo → to startup-ready.  
+🎨 **UI Goals** → Black x Hot Pink x Cyan Blue x White = 🔥  
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## 🛠️ Tech Stack
+- **Frontend:** React + TailwindCSS 💅  
+- **Backend:** Node.js + Express 🚀  
+- **APIs:** arXiv API (for real papers) + GenAI (for summaries) 🤖  
+- **Visualization:** React Mindmap lib 🌳  
+- **Deployment:** Vercel / Render ☁️  
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---

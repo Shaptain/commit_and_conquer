@@ -10,7 +10,8 @@ const PORT = process.env.PORT || 5000;
 
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+// Use gemini-1.5-flash which is the current available model
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 // Middleware
 app.use(cors());
@@ -25,8 +26,10 @@ async function fetchArxivPapers(query, maxResults = 5) {
     const searchQuery = encodeURIComponent(query);
     const url = `http://export.arxiv.org/api/query?search_query=all:${searchQuery}&start=0&max_results=${maxResults}`;
     
+    console.log('Fetching from arXiv:', url);
     const response = await axios.get(url);
     const papers = parseArxivResponse(response.data);
+    console.log(`Found ${papers.length} papers`);
     return papers;
   } catch (error) {
     console.error('Error fetching arXiv papers:', error);
@@ -40,8 +43,8 @@ function parseArxivResponse(xmlData) {
   const entries = xmlData.match(/<entry>[\s\S]*?<\/entry>/g) || [];
   
   entries.forEach(entry => {
-    const title = (entry.match(/<title>([\s\S]*?)<\/title>/) || [])[1]?.trim();
-    const summary = (entry.match(/<summary>([\s\S]*?)<\/summary>/) || [])[1]?.trim();
+    const title = (entry.match(/<title>([\s\S]*?)<\/title>/) || [])[1]?.trim().replace(/\n/g, ' ');
+    const summary = (entry.match(/<summary>([\s\S]*?)<\/summary>/) || [])[1]?.trim().replace(/\n/g, ' ');
     const authors = [];
     const authorMatches = entry.match(/<author>[\s\S]*?<\/author>/g) || [];
     
@@ -56,7 +59,7 @@ function parseArxivResponse(xmlData) {
     if (title && summary) {
       papers.push({
         title,
-        summary: summary.substring(0, 500) + '...',
+        summary: summary.length > 500 ? summary.substring(0, 500) + '...' : summary,
         authors: authors.slice(0, 3),
         published,
         link
@@ -69,101 +72,148 @@ function parseArxivResponse(xmlData) {
 
 // Generate research report using Gemini
 async function generateReport(papers, topic) {
-  const papersContext = papers.map(p => 
-    `Title: ${p.title}\nAuthors: ${p.authors.join(', ')}\nSummary: ${p.summary}`
+  if (papers.length === 0) {
+    return `No research papers found for "${topic}". Please try a different search term.`;
+  }
+
+  const papersContext = papers.slice(0, 3).map((p, i) => 
+    `Paper ${i + 1}: "${p.title}" - ${p.summary.substring(0, 300)}...`
   ).join('\n\n');
   
   const prompt = `
-    As an expert research analyst, create a comprehensive, formal research report on "${topic}" based on these papers:
+    Based on these research papers about "${topic}", create a comprehensive research report.
     
+    Papers:
     ${papersContext}
     
-    Generate a structured report with:
-    1. Executive Summary (2-3 sentences)
-    2. Key Findings (3-5 bullet points)
-    3. Methodology Overview
-    4. Detailed Analysis (2-3 paragraphs)
-    5. Future Research Directions
-    6. Conclusion
+    Write a formal research synthesis with these sections:
     
-    Use formal academic language, be precise, and include specific insights from the papers.
+    EXECUTIVE SUMMARY
+    Provide a 2-3 sentence overview of the key insights.
+    
+    KEY FINDINGS
+    List 3-5 main discoveries or insights from the papers.
+    
+    METHODOLOGY OVERVIEW
+    Briefly describe the research approaches mentioned.
+    
+    DETAILED ANALYSIS
+    Write 2-3 paragraphs analyzing the research findings.
+    
+    FUTURE RESEARCH DIRECTIONS
+    Suggest 2-3 areas for future investigation.
+    
+    CONCLUSION
+    Summarize in 2-3 sentences.
+    
+    Use formal academic language and be specific.
   `;
   
   try {
+    console.log('Generating report with Gemini...');
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    return response.text();
+    const text = response.text();
+    console.log('Report generated successfully');
+    return text;
   } catch (error) {
     console.error('Error generating report:', error);
-    return 'Report generation failed. Please try again.';
+    return `Error generating report: ${error.message}. Please ensure your Gemini API key is valid.`;
   }
 }
 
 // Generate mind map data
 async function generateMindMap(papers, topic) {
+  if (papers.length === 0) {
+    return {
+      name: topic,
+      children: [
+        {
+          name: "No data available",
+          children: []
+        }
+      ]
+    };
+  }
+
+  const paperTitles = papers.slice(0, 3).map(p => p.title).join(', ');
+  
   const prompt = `
-    Create a mind map structure for the topic "${topic}" based on these research papers.
-    Return ONLY a JSON object with this exact structure, no other text:
+    Create a mind map for "${topic}" based on these papers: ${paperTitles}
+    
+    Return ONLY valid JSON in this exact format with no additional text:
     {
-      "name": "topic name",
+      "name": "${topic}",
       "children": [
         {
-          "name": "subtopic 1",
+          "name": "subtopic1",
           "children": [
-            {"name": "detail 1"},
-            {"name": "detail 2"}
+            {"name": "concept1"},
+            {"name": "concept2"}
           ]
         },
         {
-          "name": "subtopic 2",
+          "name": "subtopic2",
           "children": [
-            {"name": "detail 3"},
-            {"name": "detail 4"}
+            {"name": "concept3"},
+            {"name": "concept4"}
+          ]
+        },
+        {
+          "name": "subtopic3",
+          "children": [
+            {"name": "concept5"},
+            {"name": "concept6"}
           ]
         }
       ]
     }
-    
-    Base it on these papers: ${papers.slice(0, 3).map(p => p.title).join(', ')}
   `;
   
   try {
+    console.log('Generating mind map...');
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
     
-    // Extract JSON from response
+    // Clean the response to extract JSON
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
+      const mindMapData = JSON.parse(jsonMatch[0]);
+      console.log('Mind map generated successfully');
+      return mindMapData;
     }
     
-    // Fallback structure
+    // Fallback if JSON parsing fails
+    throw new Error('Invalid JSON response');
+  } catch (error) {
+    console.error('Error generating mind map:', error);
+    
+    // Return a default structure based on papers
     return {
       name: topic,
       children: [
         {
-          name: "Core Concepts",
+          name: "Research Papers",
+          children: papers.slice(0, 3).map(p => ({
+            name: p.title.substring(0, 30) + "..."
+          }))
+        },
+        {
+          name: "Key Themes",
           children: [
-            { name: "Theory" },
+            { name: "Current Research" },
+            { name: "Methodologies" },
             { name: "Applications" }
           ]
         },
         {
-          name: "Research Areas",
+          name: "Future Directions",
           children: [
-            { name: "Current Studies" },
-            { name: "Future Directions" }
+            { name: "Open Questions" },
+            { name: "Emerging Trends" }
           ]
         }
-      ]
-    };
-  } catch (error) {
-    console.error('Error generating mind map:', error);
-    return {
-      name: topic,
-      children: [
-        { name: "Loading...", children: [] }
       ]
     };
   }
@@ -183,14 +233,31 @@ app.post('/api/research', async (req, res) => {
       return res.status(400).json({ error: 'Topic is required' });
     }
     
+    console.log(`Processing research request for: ${topic}`);
+    
     // Fetch papers from arXiv
-    const papers = await fetchArxivPapers(topic);
+    const papers = await fetchArxivPapers(topic, 5);
     
     if (papers.length === 0) {
-      return res.status(404).json({ error: 'No papers found for this topic' });
+      console.log('No papers found, returning empty results');
+      return res.json({
+        success: true,
+        data: {
+          papers: [],
+          report: `No research papers found for "${topic}". Try searching for:\n- A broader topic (e.g., "machine learning" instead of specific algorithms)\n- Academic terms (e.g., "neural networks", "quantum computing")\n- Research areas (e.g., "computer vision", "natural language processing")`,
+          mindMap: {
+            name: topic,
+            children: [
+              { name: "No papers found", children: [] }
+            ]
+          },
+          sessionId: Date.now().toString()
+        }
+      });
     }
     
     // Generate report and mind map in parallel
+    console.log('Generating report and mind map...');
     const [report, mindMap] = await Promise.all([
       generateReport(papers, topic),
       generateMindMap(papers, topic)
@@ -205,6 +272,8 @@ app.post('/api/research', async (req, res) => {
       history: []
     });
     
+    console.log(`Research complete. Session ID: ${sessionId}`);
+    
     res.json({
       success: true,
       data: {
@@ -216,7 +285,10 @@ app.post('/api/research', async (req, res) => {
     });
   } catch (error) {
     console.error('Research error:', error);
-    res.status(500).json({ error: 'Failed to process research request' });
+    res.status(500).json({ 
+      error: 'Failed to process research request',
+      message: error.message 
+    });
   }
 });
 
@@ -225,6 +297,8 @@ app.post('/api/chat', async (req, res) => {
   try {
     const { sessionId, message } = req.body;
     
+    console.log(`Chat request - Session: ${sessionId}, Message: ${message}`);
+    
     if (!sessionId || !message) {
       return res.status(400).json({ error: 'Session ID and message are required' });
     }
@@ -232,19 +306,21 @@ app.post('/api/chat', async (req, res) => {
     const session = chatSessions.get(sessionId);
     
     if (!session) {
-      return res.status(404).json({ error: 'Session not found' });
+      return res.status(404).json({ error: 'Session not found. Please generate a new research report.' });
     }
     
     const context = `
-      You are Professor AI, an expert on "${session.topic}".
-      You have access to this research report: ${session.report}
+      You are a helpful research assistant discussing "${session.topic}".
       
-      Previous conversation: ${session.history.join('\n')}
+      Based on this research report:
+      ${session.report.substring(0, 2000)}
       
-      Student question: ${message}
+      Previous conversation:
+      ${session.history.slice(-6).join('\n')}
       
-      Respond as a knowledgeable, friendly professor. Be concise but informative.
-      Use the research data to support your answers.
+      User question: ${message}
+      
+      Provide a concise, informative response. Be friendly but professional.
     `;
     
     const result = await model.generateContent(context);
@@ -252,13 +328,15 @@ app.post('/api/chat', async (req, res) => {
     const answer = response.text();
     
     // Update history
-    session.history.push(`Student: ${message}`);
-    session.history.push(`Professor: ${answer}`);
+    session.history.push(`User: ${message}`);
+    session.history.push(`Assistant: ${answer}`);
     
     // Keep only last 10 exchanges
     if (session.history.length > 20) {
       session.history = session.history.slice(-20);
     }
+    
+    console.log('Chat response sent');
     
     res.json({
       success: true,
@@ -266,13 +344,17 @@ app.post('/api/chat', async (req, res) => {
     });
   } catch (error) {
     console.error('Chat error:', error);
-    res.status(500).json({ error: 'Failed to process chat message' });
+    res.status(500).json({ 
+      error: 'Failed to process chat message',
+      message: error.message 
+    });
   }
 });
 
+// Start server
 app.listen(PORT, () => {
   console.log(`🚀 AI Research Co-Pilot Backend running on port ${PORT}`);
+  console.log(`📝 Make sure your GEMINI_API_KEY is set in .env file`);
+  console.log(`🔗 Frontend should connect to http://localhost:${PORT}`);
 });
-
-
 

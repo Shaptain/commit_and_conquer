@@ -84,6 +84,9 @@ const App = () => {
     if (!topic.trim()) return;
     
     setLoading(true);
+    setResearchData(null);
+    setChatHistory([]);
+    
     try {
       const response = await fetch('http://localhost:5000/api/research', {
         method: 'POST',
@@ -92,12 +95,25 @@ const App = () => {
       });
       
       const data = await response.json();
+      
       if (data.success) {
+        console.log('Research data received:', data.data);
         setResearchData(data.data);
-        setTimeout(() => renderMindMap(data.data.mindMap), 100);
+        
+        // Render mind map after a short delay to ensure DOM is ready
+        if (data.data.mindMap) {
+          setTimeout(() => {
+            console.log('Rendering mind map:', data.data.mindMap);
+            renderMindMap(data.data.mindMap);
+          }, 500);
+        }
+      } else {
+        console.error('Research failed:', data.error);
+        alert(`Error: ${data.error || 'Failed to fetch research'}`);
       }
     } catch (error) {
       console.error('Error fetching research:', error);
+      alert('Failed to connect to backend. Make sure the server is running on port 5000.');
     } finally {
       setLoading(false);
     }
@@ -105,21 +121,27 @@ const App = () => {
 
   // Render D3 Mind Map
   const renderMindMap = (data) => {
-    if (!mindMapRef.current || !data) return;
+    if (!mindMapRef.current || !data) {
+      console.error('Cannot render mind map: ref or data missing');
+      return;
+    }
     
+    // Clear previous content
     d3.select(mindMapRef.current).selectAll("*").remove();
     
-    const width = 800;
+    const width = mindMapRef.current.clientWidth || 800;
     const height = 600;
     
     const svg = d3.select(mindMapRef.current)
       .append('svg')
       .attr('width', width)
-      .attr('height', height);
+      .attr('height', height)
+      .style('background', 'transparent');
     
     const g = svg.append('g')
       .attr('transform', `translate(${width/2},${height/2})`);
     
+    // Create tree layout
     const tree = d3.tree()
       .size([2 * Math.PI, Math.min(width, height) / 2 - 100])
       .separation((a, b) => (a.parent == b.parent ? 1 : 2) / a.depth);
@@ -127,7 +149,8 @@ const App = () => {
     const root = d3.hierarchy(data);
     tree(root);
     
-    g.selectAll('.link')
+    // Draw links
+    const links = g.selectAll('.link')
       .data(root.links())
       .enter().append('path')
       .attr('class', 'link')
@@ -135,43 +158,54 @@ const App = () => {
         .angle(d => d.x)
         .radius(d => d.y))
       .style('fill', 'none')
-      .style('stroke', 'rgba(255, 255, 255, 0.2)')
-      .style('stroke-opacity', 0.4)
+      .style('stroke', 'rgba(255, 255, 255, 0.3)')
       .style('stroke-width', 1.5);
     
+    // Draw nodes
     const node = g.selectAll('.node')
       .data(root.descendants())
       .enter().append('g')
       .attr('class', 'node')
-      .attr('transform', d => `
-        rotate(${d.x * 180 / Math.PI - 90})
-        translate(${d.y},0)
-      `);
+      .attr('transform', d => {
+        const angle = d.x * 180 / Math.PI - 90;
+        return `rotate(${angle}) translate(${d.y},0)`;
+      });
     
+    // Add circles for nodes
     node.append('circle')
-      .attr('r', 4)
-      .style('fill', '#ffffff')
+      .attr('r', d => d.depth === 0 ? 6 : 4)
+      .style('fill', d => d.depth === 0 ? '#818cf8' : '#ffffff')
       .style('stroke', 'rgba(255, 255, 255, 0.5)')
       .style('stroke-width', 2);
     
+    // Add text labels
     node.append('text')
       .attr('dy', '0.31em')
       .attr('x', d => d.x < Math.PI === !d.children ? 6 : -6)
       .style('text-anchor', d => d.x < Math.PI === !d.children ? 'start' : 'end')
       .attr('transform', d => d.x >= Math.PI ? 'rotate(180)' : null)
       .text(d => d.data.name)
-      .style('font-size', '11px')
+      .style('font-size', d => d.depth === 0 ? '14px' : '11px')
       .style('fill', 'rgba(255, 255, 255, 0.9)')
       .style('font-weight', '300');
+    
+    console.log('Mind map rendered successfully');
   };
 
   // Handle chat
   const sendChatMessage = async () => {
-    if (!chatMessage.trim() || !researchData?.sessionId) return;
+    if (!chatMessage.trim() || !researchData?.sessionId) {
+      console.error('Cannot send message: no message or session');
+      return;
+    }
     
     const newMessage = { role: 'user', content: chatMessage };
     setChatHistory(prev => [...prev, newMessage]);
+    const currentMessage = chatMessage;
     setChatMessage('');
+    
+    // Add a loading message
+    setChatHistory(prev => [...prev, { role: 'assistant', content: 'Thinking...' }]);
     
     try {
       const response = await fetch('http://localhost:5000/api/chat', {
@@ -179,16 +213,41 @@ const App = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: researchData.sessionId,
-          message: chatMessage
+          message: currentMessage
         })
       });
       
       const data = await response.json();
+      
       if (data.success) {
-        setChatHistory(prev => [...prev, { role: 'assistant', content: data.answer }]);
+        // Replace the loading message with actual response
+        setChatHistory(prev => {
+          const newHistory = [...prev];
+          newHistory[newHistory.length - 1] = { role: 'assistant', content: data.answer };
+          return newHistory;
+        });
+      } else {
+        // Replace loading with error message
+        setChatHistory(prev => {
+          const newHistory = [...prev];
+          newHistory[newHistory.length - 1] = { 
+            role: 'assistant', 
+            content: `Error: ${data.error || 'Failed to get response'}` 
+          };
+          return newHistory;
+        });
       }
     } catch (error) {
       console.error('Chat error:', error);
+      // Replace loading with error message
+      setChatHistory(prev => {
+        const newHistory = [...prev];
+        newHistory[newHistory.length - 1] = { 
+          role: 'assistant', 
+          content: 'Sorry, I encountered an error. Please make sure the backend is running.' 
+        };
+        return newHistory;
+      });
     }
   };
 

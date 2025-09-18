@@ -1,41 +1,49 @@
-# 🪄📚 AI Research Co-Pilot  
-*Your friendly professor in glasses & tie who makes research ✨simple, smart, and fun!*
+#  ThinkOrbit  
+### Your AI-Powered Research Copilot  
+
+<img src="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa" alt="Galaxy" width="100%">
 
 ---
 
-## 🎨 The Vibe  
-Imagine a **slick blackboard background** 🎓 with glowing **hot pink & cyan blue highlights**,  
-fonts that scream **modern SaaS**, and a **professor chatbot** 👔🤓 hanging out in the corner to answer your toughest questions.  
+## 🔍 How It Works  
 
-This isn’t just another AI app — it’s your **research sidekick** that:  
-- Fetches **real academic papers** (no fake data 🚫).  
-- Summarizes them into **precise reports** 📝.  
-- Builds a **mind map** that actually makes sense 🕸️.  
-- Lets you chat with a **professor-avatar bot** 🤖👓.  
+ThinkOrbit helps you explore complex research topics in minutes instead of weeks.  
+We use arXiv APIs to fetch real scientific papers, and the Gemini API to summarize and map concepts.  
 
----
-
-## 💡 Why We Built This
-Because **research shouldn’t feel like drowning in PDFs** 📂😩.  
-Students, founders, and curious humans deserve a **chill, interactive, and scalable tool** to cut through the noise.  
+ Example: Searching “Quantum Computing in AI”  
+1. Papers fetched directly from arXiv.  
+2. Text split and embedded into a vector database.  
+3. Gemini API summarizes findings + extracts concepts.  
+4. Mindmap generated to show relationships.  
+5. Report with citations auto-generated.  
+6. Interactive Q&A chatbot answers your questions with sources.  
 
 ---
 
-## ✨ Features
-🔍 **Topic Search** → Type your research topic and let the magic happen.  
-📑 **Formal Report** → Structured, underlined, and academic-style.  
-🌐 **Mind Map** → Clean, visual breakdown of concepts.  
-🤓 **Professor Bot** → Our little mascot with glasses & tie, ready to answer Qs.  
-⚡ **Scalable SaaS DNA** → From hackathon demo → to startup-ready.  
-🎨 **UI Goals** → Black x Hot Pink x Cyan Blue x White = 🔥  
+## 🌌 Features  
+
+- ⚡ Fetches latest papers from arXiv  
+- 🧠 Summarization with Gemini API  
+- 🌐 Interactive mindmaps  
+- 📄 Auto-generated research reports  
+- 💬 Chatbot with real citations  
 
 ---
 
-## 🛠️ Tech Stack
-- **Frontend:** React + TailwindCSS 💅  
-- **Backend:** Node.js + Express 🚀  
-- **APIs:** arXiv API (for real papers) + GenAI (for summaries) 🤖  
-- **Visualization:** React Mindmap lib 🌳  
-- **Deployment:** Vercel / Render ☁️  
+## ✨ Why ThinkOrbit?  
+
+Instead of spending weeks buried in papers, you can:  
+- Explore a mindmap of the entire research field  
+- Read a condensed, citation-rich report  
+- Ask questions directly and get trusted answers  
+
+<img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" width="150">
+
+---
+
+## 🖼 Demo Preview  
+
+<img src="https://upload.wikimedia.org/wikipedia/commons/8/85/ArXiv_logo.png" width="120">  
+<img src="https://seeklogo.com/images/G/google-gemini-logo-62D7016D15-seeklogo.com.png" width="120">  
 
 ---

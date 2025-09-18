@@ -41,9 +41,5 @@ Instead of spending weeks buried in papers, you can:
 
 ---
 
-## 🖼 Demo Preview  
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/8/85/ArXiv_logo.png" width="120">  
-<img src="https://seeklogo.com/images/G/google-gemini-logo-62D7016D15-seeklogo.com.png" width="120">  
 
----
